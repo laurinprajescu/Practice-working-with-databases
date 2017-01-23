@@ -12,18 +12,16 @@ db = MySQLDatabase(db_config.get('db_name'),
                    db_config.get('pass'),
                    db_config.get('host'))
 
-limited_results = db.select('orders', limit='5')
+descending_results = db.select('orders', order_desc='amount')
 print "--------------------------------------"
-print "First 5 Results"
+print "Descending Results -"
 print "--------------------------------------"
-# iterate over the list of results
-for result in limited_results:
+for result in descending_results:
 	print result
-print "--------------------------------------"
 
-# Limit the results to 10
-limited_results = db.select('orders', limit='10')
-print "First 10 results"
+ascending_results = db.select('orders', order_asc='amount')
 print "--------------------------------------"
-for result in limited_results:
+print "Ascending Results -"
+print "--------------------------------------"
+for result in ascending_results:
 	print result
