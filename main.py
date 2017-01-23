@@ -12,12 +12,18 @@ db = MySQLDatabase(db_config.get('db_name'),
                    db_config.get('pass'),
                    db_config.get('host'))
 
-# Get all the available tables for
-# our database and print them out.
-tables = db.get_available_tables()
-print tables
+limited_results = db.select('orders', limit='5')
+print "--------------------------------------"
+print "First 5 Results"
+print "--------------------------------------"
+# iterate over the list of results
+for result in limited_results:
+	print result
+print "--------------------------------------"
 
-#Get all the available columns for our
-# articles table and print them out
-columns = db.get_columns_for_table('people')
-print columns
+# Limit the results to 10
+limited_results = db.select('orders', limit='10')
+print "First 10 results"
+print "--------------------------------------"
+for result in limited_results:
+	print result
