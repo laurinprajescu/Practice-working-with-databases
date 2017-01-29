@@ -1,5 +1,12 @@
 import MySQLdb as _mysql
 from collections import namedtuple
+import re
+# Only needs to compile one time so we put it here
+float_match = re.compile(r'[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?$').match
+
+
+def is_number(string):
+	return bool(float_match(string))
 
 class MySQLDatabase(object):
 
@@ -126,6 +133,42 @@ class MySQLDatabase(object):
 
         return results
 
+    def insert(self, table, **column_names):
+        """
+        Insert function.
+        Example Usage:-
+        db.insert('people', first_name='Ringo',
+                  second_name='Starr', DOB=STR_TO_DATE(
+                                             '01-01-1999', '%d-%m-%Y'))
+        """
+        sql_str = "INSERT INTO `%s`.`%s` " % (self.database_name, table)
+
+        if column_names is not None:
+            columns = "("
+            values = "("
+            for arg, value in column_names.iteritems():
+                columns += "`%s`, " % arg
+
+                # Check how we should add this to the columns string
+                if is_number(value) or arg == 'DOB':
+                    # It's a number or date so we don't add the ''
+                    values += "%s, " % value
+                else:
+                    # It's a string so we add the ''
+                    values += "'%s', " % value
+
+            columns = columns[:-2]  # Strip off the spare',' from the end
+            values = values[:-2]  # Same here too
+
+            columns += ") VALUES"  # Add the connecting keyword and brace
+            values += ");"  # Add the brace and like terminator
+
+            sql_str += "%s %s" % (columns, values)
+
+        cursor = self.db.cursor()
+        cursor.execute(sql_str)
+        self.db.commit()
+        cursor.close()
     def delete(self, table, **wheres):
         """
         This function will allow us
@@ -153,10 +196,10 @@ class MySQLDatabase(object):
         cursor.close()
 
     def update(self, table, where=None, **column_values):
-        sql_str = "UPDATE '%s'.'%s' SET " %(self.database_name, table)
+        sql_str = "UPDATE `%s`.`%s` SET " % (self.database_name, table)
         if column_values is not None:
             for column_name, value in column_values.iteritems():
-                sql_str += "'%s' =" % column_name
+                sql_str += "`%s`=" % column_name
 
                 #check how we should add this to the columns string
                 if is_number(value):
@@ -164,12 +207,12 @@ class MySQLDatabase(object):
                     sql_str += "%s, " % value
                 else:
                     # it is a date or a string so add the ''
-                    sql_str += "'%s, '" % value
+                    sql_str += "'%s', " % value
 
-        sql_str = sql_str[:-2] # strip off the last , and space character
+            sql_str = sql_str[:-2]  # strip off the last , and space character
 
         if where:
-            sql_str += " WHERE %s" % where
+                sql_str += " WHERE %s" % where
 
         cursor = self.db.cursor()
         cursor.execute(sql_str)

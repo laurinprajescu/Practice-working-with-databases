@@ -24,29 +24,33 @@ print columns
 
 # Get all the records from
 # the people table
-all_records = db.select('people')
-print "All records: %s" % str(all_records)
+results = db.select('people')
+for row in results:
+    print row
 
-# Get all of the records from
-# the people table but only the
-# `id` and `first_name` columns
-column_specific_records = db.select('people', ['id', 'first_name'])
-print "Column specific records: %s" % str(column_specific_records)
+#Selecting records with named tuples
+results = db.select('people' , columns=['id' , 'first_name'], named_tuples=True)
+for row in results:
+    print row.id , row.first_name
 
-# Select data using the WHERE clause
-where_expression_records = db.select('people', ['first_name'],
-									 where="first_name='John'")
-print "Where Records: %s" % str(where_expression_records)
+#complex queries using CONCAT Aand SUM
+people = db.select('people' , columns=["CONCAT(first_name, ' ', second_name)" \
+                                       " AS full_name", "SUM(amount)" \
+                                       " AS total_spend"],
+                   named_tuples=True, where="people.id=1",
+                   join="orders ON people.id=orders.person_id")
+for person in people:
+    print person.full_name, "spent ", person.total_spend
 
-# Select data using the WHERE clause and
-# the JOIN clause
-joined_records = db.select('people', ['first_name'],
-						   where="people.id=3",
-						   join="orders ON people.id=orders.person_id")
-print "Joined records: %s" % str(joined_records)
+#inserting an order
+db.insert('orders' , person_id="2", amount="120.00")
 
-# Delete a record from the database
-db.delete('orders', id="=3")
+#updating information
+#updating a person
+person = db.select('people', named_tuples=True)[0]
+db.update('profiles', where="person_id=%s" % person.id,
+          address="1a some street")
 
-# We can also use multiple WHERE clauses!
-db.delete('orders', id=">4", amount=">1")
+#deleting a record
+person = db.select('people', named_tuples=True)[0]
+db.delete('orders', person_id="=%s" % person.id, id="=1")
