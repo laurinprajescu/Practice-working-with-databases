@@ -1,3 +1,4 @@
+import random
 from database.mysql import MySQLDatabase
 from settings import db_config
 
@@ -64,3 +65,32 @@ people = db.select('people', columns=["first_name", "AVG(amount)"
 # print the result
 for person in people:
     print person.first_name, "spends" , person.average_spent
+
+
+# insert a new person into the people table
+db.insert('people', first_name="Laurin", second_name="Prajescu",
+          DOB='STR_TO_DATE("11-09-1979", "%d-%m-%Y")')
+
+# retreive the new person from the table
+laurin = db.select('people', ["id", "first_name"], where='first_name="Laurin"',
+                   named_tuples=True)
+
+# we need only the first entry in the list
+laurin = laurin[0]
+
+# insert into the profile table
+db.insert('profiles', person_id="%s" % laurin.id,
+          address="Dunstable")
+
+# insert into orders table and generate random integer for amount column
+db.insert('orders', person_id="%s" % laurin.id,
+          amount="%s" % random.randint(1 , 10))
+db.insert('orders', person_id="%s" % laurin.id,
+          amount="%s" % random.randint(1 , 10))
+
+#retreive all the orders for laurin person using the id
+orders = db.select('orders', where='person_id=%s' % laurin.id)
+
+#print each order
+for order in orders:
+    print order
