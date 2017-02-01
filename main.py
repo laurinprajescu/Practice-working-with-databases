@@ -54,3 +54,13 @@ db.update('profiles', where="person_id=%s" % person.id,
 #deleting a record
 person = db.select('people', named_tuples=True)[0]
 db.delete('orders', person_id="=%s" % person.id, id="=1")
+
+# retreive the first_name column and get the average amount spent where the person id = 1
+people = db.select('people', columns=["first_name", "AVG(amount)"
+                                      " AS average_spent"],
+                   named_tuples=True, where="people.id=1",
+                   join="orders ON people.id=orders.person_id")
+
+# print the result
+for person in people:
+    print person.first_name, "spends" , person.average_spent
