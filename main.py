@@ -94,3 +94,11 @@ orders = db.select('orders', where='person_id=%s' % laurin.id)
 #print each order
 for order in orders:
     print order
+
+# select person from people table using CONCAT to get their full name and MIN to get their minimum spent
+person = db.select('people', columns=["CONCAT(first_name, ' ', second_name)"
+                                       " AS full_name", "MIN(amount)"
+                                       " AS min_spend"],
+                   named_tuples=True, where="people.first_name='Laurin'",
+                   join="orders ON people.id=orders.person_id")
+print person
